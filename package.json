@@ -1,7 +1,8 @@
 {
   "scripts": {
     "build": "tsup",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\""
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "semantic-release": "semantic-release"
   },
   "devDependencies": {
     "prettier": "^3.1.0",
@@ -15,12 +16,12 @@
     "mongoose": "^8.0.1"
   },
   "name": "nemopa",
-  "version": "1.0.0",
+  "version": "0.0.0-development",
   "description": "NestJS Mongoose pagination library",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/truongduchuy910/nemopa.git"
+    "url": "https://github.com/truongduchuy910/nemopa.git"
   },
   "keywords": [
     "nestjs",
