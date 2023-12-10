@@ -1,4 +1,4 @@
-import { Field, InputType, Int, ObjectType, PickType } from "@nestjs/graphql";
+import { Field, InputType, Int, ObjectType } from "@nestjs/graphql";
 import { CursorInputInterface, PagingInputInterface } from "./paging";
 
 /**
