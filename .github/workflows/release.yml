@@ -25,9 +25,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "lts/*"
-      - name: Install dependencies
+      - name: ⚙️ Install dependencies
         run: npm install-clean
-      - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
+      - name: 👌 Verify the integrity of provenance attestations and registry signatures for installed dependencies
         run: npm audit signatures
       - name: 📦 Build package
         run: npm run build

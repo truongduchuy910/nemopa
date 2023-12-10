@@ -24,7 +24,7 @@ export default {
     [
       "@semantic-release/git",
       {
-        assets: ["package.json", "README.md"],
+        assets: ["package.json"],
         message:
           "chore(release): ${nextRelease.version} 🚀\n\n${nextRelease.notes}",
       },
