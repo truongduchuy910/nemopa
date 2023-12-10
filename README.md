@@ -1,28 +1,33 @@
 # Install
-npm
+
+with npm
 
 ```
 npm i nemopa
 ```
 
-yarn
+with yarn
 
 ```
 yarn add nemopa
 ```
-# Using
-```js
-import {
-  Paging,
-  PagingInputInterface,
-  PagingWithPage,
-} from 'nemopa';
 
+# Using
+
+```ts
+import { Paging, PagingInputInterface, PagingWithPage } from "nemopa";
+
+/**
+ * filter is a MongoDB Filter<T>
+ */
 interface FindManyProps {
   filter: any;
   paging: PagingInputInterface;
 }
 
+/**
+ * In case I choose updatedAt_utc as a Cursor
+ */
 interface TodoDocument {
   updatedAt_utc: Date;
 }
@@ -34,11 +39,11 @@ class TodoCRUD {
       cursors: props?.paging?.cursors,
       filter: props.filter,
       order: Paging.DESC,
-      key: 'updatedAt_utc',
+      key: "updatedAt_utc",
       KeyType: Date,
     });
     const limit = Number(props?.paging?.limit || 10);
-    if (limit > 20) throw new Error('rate limit');
+    if (limit > 20) throw new Error("rate limit");
 
     const skip = Number(props?.paging?.offset);
     const many = await this.model
