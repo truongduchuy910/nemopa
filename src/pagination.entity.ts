@@ -1,4 +1,4 @@
-import { Type } from "@nestjs/common";
+import { Type } from '@nestjs/common';
 import {
   Field,
   InputType,
@@ -6,7 +6,7 @@ import {
   ObjectType,
   PartialType,
   PickType,
-} from "@nestjs/graphql";
+} from '@nestjs/graphql';
 
 @ObjectType()
 export class Pagination {
@@ -46,7 +46,7 @@ export class BasePaginationResponse {
 
 @InputType()
 export class BasePaginationInput extends PartialType(
-  PickType(Pagination, ["limit", "page", "paginationToken"] as const),
+  PickType(Pagination, ['limit', 'page', 'paginationToken'] as const),
   InputType,
 ) {}
 

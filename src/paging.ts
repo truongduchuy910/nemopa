@@ -1,5 +1,6 @@
-import { first, isArray, last, pickBy } from "lodash";
-import { Model, SortOrder, Types } from "mongoose";
+import { first, isArray, last, pickBy } from 'lodash';
+import { Model, SortOrder, Types } from 'mongoose';
+import * as jwt from 'jsonwebtoken';
 
 type Sort<T> = { [K in keyof T]: SortOrder };
 
@@ -54,11 +55,13 @@ export class Paging<T> {
 
   order: SortOrder;
 
+  secret: string;
+
   constructor(props: Props<T>) {
     this.cursor = this.cursor.bind(this);
     this.build = this.build.bind(this);
     let {
-      key = "_id" as keyof T,
+      key = '_id' as keyof T,
       KeyType = Types.ObjectId,
       cursors,
       filter = {},
@@ -67,6 +70,7 @@ export class Paging<T> {
     this.key = key;
     this.order = order;
     this.condition = Object.assign({}, filter);
+    this.secret = process.env.NEMOPA_SECRET || 'this-is-default';
 
     if (cursors) {
       const { after, before } = this.decrypt(cursors);
@@ -78,7 +82,7 @@ export class Paging<T> {
             : { $lt: KeyType ? new KeyType(cursor) : cursor };
       }
 
-      if (after && key !== "_id") {
+      if (after && key !== '_id') {
         const { _id, cursor } = after;
         filter = {
           $or: [
@@ -107,7 +111,7 @@ export class Paging<T> {
             : { $gt: KeyType ? new KeyType(cursor) : cursor };
       }
 
-      if (before && key !== "_id") {
+      if (before && key !== '_id') {
         const { _id, cursor } = before;
         filter = {
           $or: [
@@ -128,7 +132,7 @@ export class Paging<T> {
       }
     }
 
-    if (key !== "_id") {
+    if (key !== '_id') {
       filter[key] ||= {};
       filter[key].$exists = true;
     }
@@ -140,11 +144,11 @@ export class Paging<T> {
     } else {
       this.sort = { [key]: order } as Sort<T>;
     }
-    this.sort["_id"] = this.sort[key];
+    this.sort['_id'] = this.sort[key];
     this.filter = pickBy(filter, (value) =>
       isArray(value)
         ? value.length > 0
-        : value !== undefined && value !== null && value !== "",
+        : value !== undefined && value !== null && value !== '',
     ) as { [P in keyof T]?: any };
   }
 
@@ -155,31 +159,49 @@ export class Paging<T> {
     };
   }
 
+  /**
+   * DECODE
+   * decode, encrypt, parse... from string
+   */
   parse(cursor: string) {
-    return JSON.parse(cursor);
+    try {
+      if (this.secret) {
+        return jwt.verify(cursor, this.secret);
+      } else {
+        return JSON.parse(cursor);
+      }
+    } catch (e) {
+      console.log(e.message);
+      throw new Error(`Pagination error.`);
+    }
   }
 
   stringify(_id: string, cursor: any) {
-    return JSON.stringify({ _id, cursor });
+    const value = { _id, cursor };
+    if (this.secret) {
+      return jwt.sign(value, this.secret);
+    } else {
+      return JSON.stringify(value);
+    }
   }
 
   cursor(many: Array<T>) {
     const data = this.reverse ? many.reverse() : many;
     const lastCursor = last(data)?.[this.key];
-    const lastId = last(data)?.["_id"];
+    const lastId = last(data)?.['_id'];
     const afterCursor = this.stringify(lastId, lastCursor);
     let filterNext = Object.assign({}, this.filter);
     filterNext[this.key] =
       this.order === Paging.ASC ? { $gt: lastCursor } : { $lt: lastCursor };
 
     const fistCursor = first(data)?.[this.key];
-    const firstId = first(data)?.["_id"];
+    const firstId = first(data)?.['_id'];
     const beforeCursor = this.stringify(firstId, fistCursor);
     let filterPrevious = Object.assign({}, this.filter);
     filterPrevious[this.key] =
       this.order === Paging.ASC ? { $lt: fistCursor } : { $gt: fistCursor };
 
-    if (this.key !== "_id") {
+    if (this.key !== '_id') {
       filterNext = {
         $or: [
           { ...this.condition, [this.key]: filterNext[this.key] },
@@ -215,9 +237,9 @@ export class Paging<T> {
   async build(many: Array<T>, model: Model<T>) {
     const { afterCursor, beforeCursor, filterNext, filterPrevious, data } =
       this.cursor(many);
-    const countPrevious = 1 || (await model.count(filterPrevious));
-    const countNext = 1 || (await model.count(filterNext));
-    const count = await model.count(this.filter);
+    const countPrevious = (await model.count(filterPrevious)) || 0;
+    const countNext = (await model.count(filterNext)) || 0;
+    const count = await model.count(this.condition);
 
     return {
       data,
