@@ -25,7 +25,7 @@
     "jsonwebtoken": "^9.0.2"
   },
   "name": "nemopa",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "NestJS Mongoose pagination library",
   "main": "index.js",
   "repository": {
