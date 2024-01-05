@@ -1,6 +1,6 @@
-import { first, isArray, last, pickBy } from 'lodash';
-import { Model, SortOrder, Types } from 'mongoose';
-import * as jwt from 'jsonwebtoken';
+import { first, isArray, last, pickBy } from "lodash";
+import { Model, SortOrder, Types } from "mongoose";
+import * as jwt from "jsonwebtoken";
 
 type Sort<T> = { [K in keyof T]: SortOrder };
 
@@ -47,7 +47,7 @@ export class Paging<T> {
 
   originSort: Sort<T>;
 
-  sort: Sort<T>;
+  sort: Sort<T> & { _id?: SortOrder };
 
   key: keyof T;
 
@@ -61,7 +61,7 @@ export class Paging<T> {
     this.cursor = this.cursor.bind(this);
     this.build = this.build.bind(this);
     let {
-      key = '_id' as keyof T,
+      key = "_id" as keyof T,
       KeyType = Types.ObjectId,
       cursors,
       filter = {},
@@ -70,7 +70,7 @@ export class Paging<T> {
     this.key = key;
     this.order = order;
     this.condition = Object.assign({}, filter);
-    this.secret = process.env.NEMOPA_SECRET || 'this-is-default';
+    this.secret = process.env.NEMOPA_SECRET || "this-is-default";
 
     if (cursors) {
       const { after, before } = this.decrypt(cursors);
@@ -82,7 +82,7 @@ export class Paging<T> {
             : { $lt: KeyType ? new KeyType(cursor) : cursor };
       }
 
-      if (after && key !== '_id') {
+      if (after && key !== "_id") {
         const { _id, cursor } = after;
         filter = {
           $or: [
@@ -111,7 +111,7 @@ export class Paging<T> {
             : { $gt: KeyType ? new KeyType(cursor) : cursor };
       }
 
-      if (before && key !== '_id') {
+      if (before && key !== "_id") {
         const { _id, cursor } = before;
         filter = {
           $or: [
@@ -132,7 +132,7 @@ export class Paging<T> {
       }
     }
 
-    if (key !== '_id') {
+    if (key !== "_id") {
       filter[key] ||= {};
       filter[key].$exists = true;
     }
@@ -144,11 +144,11 @@ export class Paging<T> {
     } else {
       this.sort = { [key]: order } as Sort<T>;
     }
-    this.sort['_id'] = this.sort[key];
+    this.sort["_id"] = this.sort[key];
     this.filter = pickBy(filter, (value) =>
       isArray(value)
         ? value.length > 0
-        : value !== undefined && value !== null && value !== '',
+        : value !== undefined && value !== null && value !== "",
     ) as { [P in keyof T]?: any };
   }
 
@@ -185,23 +185,23 @@ export class Paging<T> {
     }
   }
 
-  cursor(many: Array<T>) {
+  cursor(many: Array<T & { _id?: any }>) {
     const data = this.reverse ? many.reverse() : many;
     const lastCursor = last(data)?.[this.key];
-    const lastId = last(data)?.['_id'];
+    const lastId = last(data)?.["_id"];
     const afterCursor = this.stringify(lastId, lastCursor);
     let filterNext = Object.assign({}, this.filter);
     filterNext[this.key] =
       this.order === Paging.ASC ? { $gt: lastCursor } : { $lt: lastCursor };
 
     const fistCursor = first(data)?.[this.key];
-    const firstId = first(data)?.['_id'];
+    const firstId = first(data)?.["_id"];
     const beforeCursor = this.stringify(firstId, fistCursor);
     let filterPrevious = Object.assign({}, this.filter);
     filterPrevious[this.key] =
       this.order === Paging.ASC ? { $lt: fistCursor } : { $gt: fistCursor };
 
-    if (this.key !== '_id') {
+    if (this.key !== "_id") {
       filterNext = {
         $or: [
           { ...this.condition, [this.key]: filterNext[this.key] },
