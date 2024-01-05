@@ -31,7 +31,7 @@
     "mongoose": "^7.6.7"
   },
   "name": "nemopa",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "NestJS Mongoose pagination library",
   "repository": {
     "type": "git",
